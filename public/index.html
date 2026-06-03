@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Evaluación Gratuita — IMNUFIT</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#EEF2FA;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+
+/* ── PROGRESS ── */
+.prog-wrap{position:fixed;top:0;left:0;right:0;height:4px;background:#D5DCF0;z-index:100}
+.prog-fill{height:100%;background:#2E4982;transition:width .4s ease}
+
+/* ── HEADER ── */
+.hdr{position:fixed;top:4px;left:0;right:0;display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:rgba(238,242,250,.96);backdrop-filter:blur(8px);z-index:99}
+.hdr img{height:28px}
+.hdr-step{font-size:11px;color:#6B80A8;font-weight:700;letter-spacing:.5px}
+.btn-back{background:none;border:none;font-size:22px;color:#6B80A8;cursor:pointer;padding:4px 6px;line-height:1}
+
+/* ── SCREEN ── */
+.screen{display:none;flex-direction:column;align-items:center;width:100%;max-width:480px;min-height:100vh;padding:72px 16px 96px}
+.screen.active{display:flex}
+
+/* ── WELCOME ── */
+.hero{background:linear-gradient(135deg,#2E4982,#1A2F5C);border-radius:22px;padding:28px 22px;width:100%;color:#fff;margin-bottom:16px;box-shadow:0 8px 28px rgba(46,73,130,.28)}
+.badge{display:inline-block;background:rgba(255,255,255,.14);border-radius:100px;padding:4px 12px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px}
+.hero-title{font-size:24px;font-weight:900;line-height:1.2;margin-bottom:10px}
+.hero-sub{font-size:13px;color:rgba(255,255,255,.75);line-height:1.6;margin-bottom:18px}
+.chk-list{list-style:none}
+.chk-list li{display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(255,255,255,.9);margin-bottom:9px}
+.chk-list li::before{content:'✓';width:20px;height:20px;background:rgba(255,255,255,.18);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex-shrink:0}
+.results-card{background:#fff;border-radius:18px;padding:18px;width:100%;margin-bottom:16px;box-shadow:0 4px 18px rgba(46,73,130,.07)}
+.rc-title{font-size:10px;font-weight:700;color:#2E4982;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chip{background:#EEF3FF;border-radius:10px;padding:12px 8px;text-align:center}
+.chip-icon{font-size:22px}
+.chip-label{font-size:10px;color:#2E4982;font-weight:700;margin-top:4px}
+
+/* ── CARD ── */
+.card{background:#fff;border-radius:20px;padding:24px 18px;width:100%;box-shadow:0 4px 20px rgba(46,73,130,.07);margin-bottom:14px}
+.sec-emoji{font-size:38px;display:block;text-align:center;margin-bottom:10px}
+.sec-tag{font-size:10px;font-weight:700;color:#2E4982;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
+.sec-title{font-size:20px;font-weight:900;color:#1A2B4A;line-height:1.25;margin-bottom:6px}
+.sec-sub{font-size:13px;color:#6B80A8;line-height:1.5;margin-bottom:20px}
+
+/* ── INPUTS ── */
+.fld{margin-bottom:14px}
+.lbl{font-size:10px;font-weight:700;color:#6B80A8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;display:block}
+.inp{width:100%;padding:14px 16px;font-size:16px;border:2px solid #DDE4F0;border-radius:13px;outline:none;color:#1A2B4A;background:#F8FAFC;transition:border-color .2s;-webkit-appearance:none;font-family:inherit}
+.inp:focus{border-color:#2E4982;background:#fff}
+.inp.sel{background:#F8FAFC url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236B80A8' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 14px center;cursor:pointer}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ── OPTION BUTTONS ── */
+.opts{display:grid;gap:10px;width:100%;margin-bottom:4px}
+.opts.c2{grid-template-columns:1fr 1fr}
+.opt{display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px solid #DDE4F0;border-radius:14px;background:#F8FAFC;cursor:pointer;transition:all .18s;text-align:left;width:100%}
+.opt.center{flex-direction:column;align-items:center;text-align:center;gap:6px;padding:16px 10px}
+.opt-icon{font-size:26px}
+.opt-label{font-size:14px;font-weight:700;color:#1A2B4A;display:block}
+.opt-desc{font-size:11px;color:#6B80A8;display:block;margin-top:2px}
+.opt.sel,.opt:hover{border-color:#2E4982;background:#EEF3FF}
+.opt.sel .opt-label{color:#2E4982}
+
+/* ── UNIT TOGGLE ── */
+.unit-tog{display:flex;background:#EEF3FF;border-radius:11px;padding:3px;margin-bottom:16px;width:100%}
+.unit-tog button{flex:1;padding:9px;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;background:transparent;color:#6B80A8;font-family:inherit}
+.unit-tog button.on{background:#2E4982;color:#fff;box-shadow:0 2px 8px rgba(46,73,130,.22)}
+
+/* ── TOGGLE SWITCH ── */
+.tog-row{display:flex;align-items:center;justify-content:space-between;padding:13px 15px;border:2px solid #DDE4F0;border-radius:13px;margin-bottom:12px;cursor:pointer;transition:all .2s;background:#F8FAFC}
+.tog-row.on{border-color:#2E4982;background:#EEF3FF}
+.tog-txt{font-size:14px;font-weight:700;color:#1A2B4A}
+.tog-sub{font-size:11px;color:#6B80A8;margin-top:2px}
+.sw{width:42px;height:24px;background:#DDE4F0;border-radius:12px;position:relative;transition:background .2s;flex-shrink:0}
+.sw::after{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.tog-row.on .sw{background:#2E4982}
+.tog-row.on .sw::after{transform:translateX(18px)}
+
+/* ── STEPPER ── */
+.stepper{display:flex;align-items:center;justify-content:space-between;background:#F8FAFC;border:2px solid #DDE4F0;border-radius:13px;padding:10px 14px;margin-bottom:14px}
+.step-btn{width:38px;height:38px;border-radius:50%;border:2px solid #DDE4F0;background:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#2E4982;font-weight:700;transition:all .15s;font-family:inherit}
+.step-btn:active{background:#EEF3FF}
+.step-val{font-size:28px;font-weight:900;color:#1A2B4A;text-align:center;min-width:60px}
+.step-unit{font-size:12px;color:#6B80A8;text-align:center;margin-top:1px}
+
+/* ── RADIO (ciclo) ── */
+.radio-opt{display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px solid #DDE4F0;border-radius:13px;margin-bottom:10px;cursor:pointer;background:#F8FAFC;transition:all .2s}
+.radio-opt.sel{border-color:#2E4982;background:#EEF3FF}
+.radio-circle{width:20px;height:20px;border:2px solid #DDE4F0;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.radio-opt.sel .radio-circle{border-color:#2E4982;background:#2E4982}
+.radio-opt.sel .radio-circle::after{content:'';width:7px;height:7px;background:#fff;border-radius:50%}
+.radio-label{font-size:14px;font-weight:700;color:#1A2B4A}
+.radio-sub{font-size:11px;color:#6B80A8;margin-top:2px}
+
+/* ── INFO BOX ── */
+.info{background:#EEF3FF;border-radius:12px;padding:12px 14px;display:flex;gap:8px;margin-bottom:14px;font-size:12px;color:#2E4982;font-weight:500;line-height:1.5}
+
+/* ── TEXTAREA ── */
+.ta{width:100%;padding:13px 16px;font-size:15px;border:2px solid #DDE4F0;border-radius:13px;outline:none;color:#1A2B4A;background:#F8FAFC;resize:none;height:90px;font-family:inherit;line-height:1.5;transition:border-color .2s}
+.ta:focus{border-color:#2E4982;background:#fff}
+
+/* ── FILE UPLOAD ── */
+.file-area{border:2px dashed #DDE4F0;border-radius:13px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:#F8FAFC;margin-bottom:14px}
+.file-area:hover,.file-area.has-file{border-color:#2E4982;background:#EEF3FF}
+.file-area input{display:none}
+.file-icon{font-size:32px;margin-bottom:6px}
+.file-label{font-size:13px;font-weight:700;color:#2E4982}
+.file-sub{font-size:11px;color:#6B80A8;margin-top:4px}
+.file-name{font-size:12px;color:#2E4982;font-weight:600;margin-top:6px;word-break:break-all}
+
+/* ── TERMS ── */
+.terms-row{display:flex;align-items:flex-start;gap:12px;padding:14px;background:#F8FAFC;border-radius:13px;border:2px solid #DDE4F0;margin-bottom:12px;cursor:pointer}
+.terms-row input{width:20px;height:20px;flex-shrink:0;margin-top:1px;accent-color:#2E4982;cursor:pointer}
+.terms-txt{font-size:13px;color:#6B80A8;line-height:1.5}
+
+/* ── BOTTOM BAR ── */
+.bot{position:fixed;bottom:0;left:0;right:0;padding:12px 16px;background:rgba(238,242,250,.96);backdrop-filter:blur(8px);display:flex;justify-content:center;z-index:99}
+.btn-next{width:100%;max-width:448px;padding:17px;background:#2E4982;color:#fff;border:none;border-radius:15px;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(46,73,130,.28);letter-spacing:.3px;font-family:inherit;transition:all .2s}
+.btn-next:active{transform:scale(.98)}
+.btn-next:disabled{background:#B0BDD6;box-shadow:none;cursor:not-allowed}
+
+/* ── ERROR ── */
+.err-msg{font-size:12px;color:#E53E3E;margin-top:4px;display:none}
+
+/* ── SUCCESS ── */
+.success-screen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 20px;text-align:center;max-width:480px;margin:0 auto}
+.success-screen.active{display:flex}
+</style>
+</head>
+<body>
+
+<div class="prog-wrap"><div class="prog-fill" id="prog" style="width:0%"></div></div>
+
+<div class="hdr">
+  <button class="btn-back" id="btnBack" onclick="back()">‹</button>
+  <img src="https://imnufit.com/wp-content/uploads/2025/05/cropped-logo-y-nombre-AZUL.png" alt="IMNUFIT">
+  <span class="hdr-step" id="stepLbl"></span>
+</div>
+
+<!-- ══════════════════════════════════════
+     PASO 1 — BIENVENIDA
+══════════════════════════════════════ -->
+<div class="screen active" id="s1">
+  <div class="hero">
+    <span class="badge">✨ Evaluación Gratuita</span>
+    <div class="hero-title">Descubre el estado real de tu cuerpo</div>
+    <div class="hero-sub">Completá esta evaluación y recibí un diagnóstico personalizado gratis directo a tu correo en minutos.</div>
+    <ul class="chk-list">
+      <li>Tu porcentaje de grasa corporal real</li>
+      <li>Tu índice de masa muscular</li>
+      <li>Tu peso ideal calculado</li>
+      <li>Recomendaciones para perimenopausia</li>
+    </ul>
+  </div>
+  <div class="results-card">
+    <div class="rc-title">📊 Lo que vas a recibir</div>
+    <div class="chips">
+      <div class="chip"><div class="chip-icon">⚖️</div><div class="chip-label">IMC</div></div>
+      <div class="chip"><div class="chip-icon">🔥</div><div class="chip-label">% Grasa</div></div>
+      <div class="chip"><div class="chip-icon">💪</div><div class="chip-label">Masa Muscular</div></div>
+      <div class="chip"><div class="chip-icon">🎯</div><div class="chip-label">Peso Ideal</div></div>
+    </div>
+  </div>
+  <div class="info"><span>⏱️</span>Toma aproximadamente 5 minutos. Solo necesitás una cinta métrica para las medidas.</div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PASO 2 — SOBRE TI
+══════════════════════════════════════ -->
+<div class="screen" id="s2">
+  <div class="card">
+    <span class="sec-emoji">👤</span>
+    <div class="sec-tag">Sección 1 de 5</div>
+    <div class="sec-title">Sobre ti</div>
+    <div class="sec-sub">Datos básicos para personalizar tu evaluación.</div>
+
+    <div class="fld">
+      <label class="lbl">Nombre completo *</label>
+      <input class="inp" id="nombre" type="text" placeholder="Tu nombre completo" autocomplete="name" oninput="chk()">
+    </div>
+
+    <div class="fld">
+      <label class="lbl">Sexo biológico *</label>
+      <div class="opts c2">
+        <button class="opt center" onclick="pick(this,'genero','Femenino');chk()">
+          <span class="opt-icon">♀️</span><span class="opt-label">Femenino</span>
+        </button>
+        <button class="opt center" onclick="pick(this,'genero','Masculino');chk()">
+          <span class="opt-icon">♂️</span><span class="opt-label">Masculino</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="fld">
+        <label class="lbl">Edad *</label>
+        <input class="inp" id="edad" type="number" placeholder="38" min="18" max="99" oninput="chk()">
+      </div>
+      <div class="fld">
+        <label class="lbl">País *</label>
+        <select class="inp sel" id="pais" onchange="chk()">
+          <option value="">— País —</option>
+          <option>Argentina</option><option>Bolivia</option><option>Chile</option>
+          <option>Colombia</option><option>Costa Rica</option><option>Cuba</option>
+          <option>Ecuador</option><option>El Salvador</option><option>España</option>
+          <option>Estados Unidos</option><option>Guatemala</option><option>Honduras</option>
+          <option>México</option><option>Nicaragua</option><option>Panamá</option>
+          <option>Paraguay</option><option>Perú</option><option>Puerto Rico</option>
+          <option>República Dominicana</option><option>Uruguay</option>
+          <option>Venezuela</option><option>Otro</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="fld">
+      <label class="lbl">Correo electrónico *</label>
+      <input class="inp" id="email" type="email" placeholder="tucorreo@ejemplo.com" oninput="chk()">
+    </div>
+
+    <div class="fld">
+      <label class="lbl">WhatsApp (con código de país) *</label>
+      <input class="inp" id="whatsapp" type="tel" placeholder="+1 555 000 0000" oninput="chk()">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PASO 3 — MEDIDAS CORPORALES
+══════════════════════════════════════ -->
+<div class="screen" id="s3">
+  <div class="card">
+    <span class="sec-emoji">📏</span>
+    <div class="sec-tag">Sección 2 de 5</div>
+    <div class="sec-title">Medidas corporales</div>
+    <div class="sec-sub">Elegí tu sistema y completá las medidas. Solo necesitás una cinta de costura.</div>
+
+    <div class="unit-tog">
+      <button class="on" id="btnKg" onclick="setUnits('metric')">Kg &amp; cm</button>
+      <button id="btnLb" onclick="setUnits('imperial')">Lb &amp; pies</button>
+    </div>
+
+    <!-- Métrico -->
+    <div id="metric-fields">
+      <div class="two-col">
+        <div class="fld">
+          <label class="lbl" id="lbl-h">Altura (cm) *</label>
+          <input class="inp" id="altura" type="number" placeholder="165" oninput="chk()">
+        </div>
+        <div class="fld">
+          <label class="lbl" id="lbl-w">Peso (kg) *</label>
+          <input class="inp" id="peso" type="number" placeholder="72" step="0.1" oninput="chk()">
+        </div>
+      </div>
+    </div>
+    <!-- Imperial -->
+    <div id="imperial-fields" style="display:none">
+      <div class="fld">
+        <label class="lbl">Altura *</label>
+        <div class="two-col">
+          <input class="inp" id="altura_pies" type="number" placeholder="5 pies" oninput="chk()">
+          <input class="inp" id="altura_pulgadas" type="number" placeholder="5 pulgadas" oninput="chk()">
+        </div>
+      </div>
+      <div class="fld">
+        <label class="lbl">Peso (lb) *</label>
+        <input class="inp" id="peso_lb" type="number" placeholder="158" step="0.1" oninput="chk()">
+      </div>
+    </div>
+
+    <div class="info"><span>💡</span>Las medidas de cuello, cintura y cadera se toman con cinta. Si no tenés, ingresá 0 — podés actualizarlas después.</div>
+
+    <div class="two-col">
+      <div class="fld">
+        <label class="lbl" id="lbl-neck">Cuello (cm) *</label>
+        <input class="inp" id="cuello" type="number" placeholder="34" step="0.1" oninput="chk()">
+      </div>
+      <div class="fld">
+        <label class="lbl" id="lbl-waist">Cintura (cm) *</label>
+        <input class="inp" id="cintura" type="number" placeholder="88" step="0.1" oninput="chk()">
+      </div>
+    </div>
+    <div class="fld" id="cadera-wrap">
+      <label class="lbl" id="lbl-hip">Cadera (cm) — solo mujeres *</label>
+      <input class="inp" id="cadera" type="number" placeholder="100" step="0.1" oninput="chk()">
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PASO 4 — ESTILO DE VIDA
+══════════════════════════════════════ -->
+<div class="screen" id="s4">
+  <div class="card">
+    <span class="sec-emoji">🏃‍♀️</span>
+    <div class="sec-tag">Sección 3 de 5</div>
+    <div class="sec-title">Estilo de vida</div>
+    <div class="sec-sub">Ayuda a calibrar tu plan nutricional y de actividad.</div>
+
+    <div class="fld">
+      <label class="lbl">Nivel de actividad física *</label>
+      <div class="opts">
+        <button class="opt" onclick="pick(this,'actividad','Sedentario');chk()">
+          <span class="opt-icon">🛋️</span>
+          <div><span class="opt-label">Sedentaria/o</span><span class="opt-desc">Sin ejercicio</span></div>
+        </button>
+        <button class="opt" onclick="pick(this,'actividad','Ligeramente activo');chk()">
+          <span class="opt-icon">🚶‍♀️</span>
+          <div><span class="opt-label">Ligeramente activa/o</span><span class="opt-desc">Camino o actividad leve</span></div>
+        </button>
+        <button class="opt" onclick="pick(this,'actividad','Moderadamente activo');chk()">
+          <span class="opt-icon">🚴‍♀️</span>
+          <div><span class="opt-label">Moderadamente activa/o</span><span class="opt-desc">Ejercicio 3-5 veces/semana</span></div>
+        </button>
+        <button class="opt" onclick="pick(this,'actividad','Muy activo');chk()">
+          <span class="opt-icon">🏋️‍♀️</span>
+          <div><span class="opt-label">Muy activa/o</span><span class="opt-desc">Ejercicio intenso casi diario</span></div>
+        </button>
+      </div>
+    </div>
+
+    <div class="fld">
+      <label class="lbl">¿Qué ejercicios hacés? (si no hacés, escribí "Ninguno") *</label>
+      <input class="inp" id="tipo_actividad" type="text" placeholder="Caminata, yoga, pesas, natación..." oninput="chk()">
+    </div>
+
+    <div class="fld">
+      <label class="lbl">Litros de agua al día *</label>
+      <div class="stepper">
+        <button class="step-btn" onclick="change('agua',-0.5)">−</button>
+        <div><div class="step-val" id="agua-v">1.5</div><div class="step-unit">litros</div></div>
+        <button class="step-btn" onclick="change('agua',0.5)">+</button>
+      </div>
+    </div>
+
+    <div class="fld">
+      <label class="lbl">Comidas al día (incluyendo snacks) *</label>
+      <div class="stepper">
+        <button class="step-btn" onclick="change('comidas',-1)">−</button>
+        <div><div class="step-val" id="comidas-v">3</div><div class="step-unit">comidas</div></div>
+        <button class="step-btn" onclick="change('comidas',1)">+</button>
+      </div>
+    </div>
+
+    <div class="fld">
+      <label class="lbl">¿A qué hora sentís más hambre? *</label>
+      <select class="inp sel" id="hora_hambre" onchange="chk()">
+        <option value="">— Seleccioná —</option>
+        <option>Mañana (6am - 10am)</option>
+        <option>Media mañana (10am - 12pm)</option>
+        <option>Mediodía (12pm - 2pm)</option>
+        <option>Tarde (2pm - 6pm)</option>
+        <option>Noche (6pm - 10pm)</option>
+        <option>Madrugada (después de 10pm)</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PASO 5 — HÁBITOS & CONSULTA
+══════════════════════════════════════ -->
+<div class="screen" id="s5">
+  <div class="card">
+    <span class="sec-emoji">🌿</span>
+    <div class="sec-tag">Sección 4 de 5</div>
+    <div class="sec-title">Hábitos y motivo de consulta</div>
+    <div class="sec-sub">Preguntas rápidas sobre tu salud digestiva y lo que te trae aquí.</div>
+
+    <div class="fld">
+      <label class="lbl">¿Sufrís de constipación frecuente? *</label>
+      <div class="opts c2">
+        <button class="opt center" onclick="pick(this,'constipacion','Si');chk()">
+          <span class="opt-icon">✅</span><span class="opt-label">Sí</span>
+        </button>
+        <button class="opt center" onclick="pick(this,'constipacion','No');chk()">
+          <span class="opt-icon">❌</span><span class="opt-label">No</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="fld">
+      <label class="lbl">¿Cambia lo que comés cuando estás triste o ansiosa/o? *</label>
+      <div class="opts c2">
+        <button class="opt center" onclick="pick(this,'ansiedad','Si');chk()">
+          <span class="opt-icon">✅</span><span class="opt-label">Sí</span>
+        </button>
+        <button class="opt center" onclick="pick(this,'ansiedad','No');chk()">
+          <span class="opt-icon">❌</span><span class="opt-label">No</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="fld">
+      <label class="lbl">¿Cuál es el motivo de tu consulta? *</label>
+      <textarea class="ta" id="motivo" placeholder="Contanos qué te preocupa o qué querés lograr. Ej: Subí de peso desde la perimenopausia y no puedo bajarlo..." oninput="chk()"></textarea>
+    </div>
+
+    <div class="fld">
+      <label class="lbl">¿Qué te ha impedido mejorar tu salud hasta ahora? *</label>
+      <textarea class="ta" id="impedimentos" placeholder="Ej: Falta de tiempo, finanzas, no saber qué comer, enfermedades..." oninput="chk()"></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PASO 6 — SALUD & ENVIAR
+══════════════════════════════════════ -->
+<div class="screen" id="s6">
+  <div class="card" style="margin-bottom:14px">
+    <span class="sec-emoji">🩺</span>
+    <div class="sec-tag">Sección 5 de 5</div>
+    <div class="sec-title">Tu historial de salud</div>
+    <div class="sec-sub">Información confidencial que personaliza tu diagnóstico.</div>
+
+    <!-- Enfermedades -->
+    <div class="fld">
+      <div class="tog-row" id="tog-enf" onclick="togField('enf')">
+        <div><div class="tog-txt">No tengo enfermedades</div><div class="tog-sub">Activá si no tenés ninguna diagnosticada</div></div>
+        <div class="sw"></div>
+      </div>
+      <div id="enf-wrap">
+        <textarea class="ta" id="enfermedades" placeholder="Ej: Hipotiroidismo, Diabetes tipo 2, PCOS, Resistencia a la insulina..."></textarea>
+      </div>
+    </div>
+
+    <!-- Medicamentos -->
+    <div class="fld">
+      <div class="tog-row" id="tog-med" onclick="togField('med')">
+        <div><div class="tog-txt">No tomo medicamentos</div><div class="tog-sub">Activá si no tomás ningún medicamento o suplemento</div></div>
+        <div class="sw"></div>
+      </div>
+      <div id="med-wrap">
+        <textarea class="ta" id="medicamentos" placeholder="Ej: Levotiroxina 50mcg, Metformina, Estrógeno, Vitamina D..."></textarea>
+      </div>
+    </div>
+
+    <!-- Ciclo menstrual — solo mujeres -->
+    <div class="fld" id="ciclo-wrap">
+      <label class="lbl">Ciclo menstrual *</label>
+      <div class="radio-opt" onclick="pickRadio(this,'ciclo','Regular (cada 21-28 dias)')">
+        <div class="radio-circle"></div>
+        <div><div class="radio-label">Regular</div><div class="radio-sub">Cada 21 a 28 días</div></div>
+      </div>
+      <div class="radio-opt" onclick="pickRadio(this,'ciclo','Irregular (más de 28 dias)')">
+        <div class="radio-circle"></div>
+        <div><div class="radio-label">Irregular</div><div class="radio-sub">Más de 28 días o impredecible</div></div>
+      </div>
+      <div class="radio-opt" onclick="pickRadio(this,'ciclo','No tengo')">
+        <div class="radio-circle"></div>
+        <div><div class="radio-label">Ya no tengo</div><div class="radio-sub">Menopausia o extirpación</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Examen adjunto -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="sec-tag" style="margin-bottom:6px">Examen de laboratorio</div>
+    <p style="font-size:13px;color:#6B80A8;line-height:1.5;margin-bottom:14px">Si tenés un examen reciente (sangre, hormonal, etc.) podés adjuntarlo. Nuestro sistema lo interpreta y lo incluye en tu evaluación. <strong>Es opcional.</strong></p>
+    <div class="file-area" id="file-area" onclick="document.getElementById('examen').click()">
+      <input type="file" id="examen" accept="image/*,.pdf" onchange="onFile(this)">
+      <div class="file-icon">📎</div>
+      <div class="file-label">Toca para adjuntar</div>
+      <div class="file-sub">Foto o PDF — máximo 20MB</div>
+      <div class="file-name" id="file-name"></div>
+    </div>
+  </div>
+
+  <!-- Términos -->
+  <div class="card">
+    <label class="terms-row">
+      <input type="checkbox" id="terminos" onchange="chk()">
+      <span class="terms-txt">Acepto que mis datos sean tratados con <strong>estricta confidencialidad</strong> para generar mi evaluación gratuita y ser contactada por el equipo IMNUFIT.</span>
+    </label>
+    <div class="info" style="margin-bottom:0">🔒 Tu evaluación llega a tu correo en minutos. Nunca compartimos tus datos con terceros.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PANTALLA DE ÉXITO
+══════════════════════════════════════ -->
+<div class="success-screen" id="success">
+  <div style="font-size:72px;margin-bottom:20px">🎉</div>
+  <div style="font-size:24px;font-weight:900;color:#1A2B4A;margin-bottom:10px">¡Listo, <span id="nombre-ok"></span>!</div>
+  <div style="font-size:15px;color:#6B80A8;line-height:1.6;margin-bottom:24px;max-width:320px">Tu evaluación está siendo procesada. Revisá tu correo en los próximos minutos.</div>
+  <div style="background:#EEF3FF;border-radius:16px;padding:18px;width:100%;max-width:380px;text-align:left">
+    <div style="font-size:13px;color:#2E4982;font-weight:600;margin-bottom:4px">📧 Si no lo ves, revisá la carpeta de spam.</div>
+    <div style="font-size:12px;color:#6B80A8">Remitente: imnufit@gmail.com</div>
+  </div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bot" id="bot">
+  <button class="btn-next" id="btnNext" onclick="next()" disabled>Comenzar evaluación →</button>
+</div>
+
+<script>
+// ── STATE ──
+const fd = { genero:'', actividad:'', constipacion:'', ansiedad:'', ciclo:'', agua:1.5, comidas:3, units:'metric', noEnf:false, noMed:false };
+let step = 1;
+const TOTAL = 6;
+const LABELS = ['','Comenzar evaluación →','Continuar →','Continuar →','Continuar →','Continuar →','Enviar mi evaluación 🎉'];
+
+// ── NAVIGATION ──
+function updateUI() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const sc = document.getElementById('s'+step);
+  if (sc) { sc.classList.add('active'); window.scrollTo(0,0); }
+  document.getElementById('prog').style.width = ((step-1)/(TOTAL)*100)+'%';
+  document.getElementById('stepLbl').textContent = step > 1 ? `${step-1} de ${TOTAL-1}` : '';
+  document.getElementById('btnBack').style.opacity = step===1?'0':'1';
+  document.getElementById('btnBack').style.pointerEvents = step===1?'none':'auto';
+  document.getElementById('btnNext').textContent = LABELS[step] || 'Continuar →';
+  chk();
+}
+
+function next() {
+  if (step === TOTAL) { submit(); return; }
+  step++;
+  updateUI();
+}
+
+function back() {
+  if (step <= 1) return;
+  step--;
+  updateUI();
+}
+
+// ── VALIDATION ──
+function chk() {
+  let ok = false;
+  const v = id => document.getElementById(id)?.value?.trim();
+  switch(step) {
+    case 1: ok = true; break;
+    case 2:
+      ok = v('nombre') && fd.genero && v('edad') && v('pais') && v('email')?.includes('@') && v('whatsapp')?.length > 6;
+      break;
+    case 3:
+      const altOk = fd.units === 'metric' ? !!v('altura') : (!!v('altura_pies'));
+      const pesoOk = fd.units === 'metric' ? !!v('peso') : !!v('peso_lb');
+      const cadOk = fd.genero !== 'Femenino' || !!v('cadera');
+      ok = altOk && pesoOk && !!v('cuello') && !!v('cintura') && cadOk;
+      break;
+    case 4:
+      ok = fd.actividad && !!v('tipo_actividad') && !!v('hora_hambre');
+      break;
+    case 5:
+      ok = fd.constipacion && fd.ansiedad && v('motivo')?.length > 5 && v('impedimentos')?.length > 2;
+      break;
+    case 6:
+      const enfOk = fd.noEnf || !!v('enfermedades');
+      const medOk = fd.noMed || !!v('medicamentos');
+      const cicloOk = fd.genero !== 'Femenino' || !!fd.ciclo;
+      ok = enfOk && medOk && cicloOk && document.getElementById('terminos').checked;
+      break;
+  }
+  document.getElementById('btnNext').disabled = !ok;
+}
+
+// ── OPTION PICKER ──
+function pick(btn, key, val) {
+  btn.closest('.opts').querySelectorAll('.opt').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  fd[key] = val;
+  if (key === 'genero') {
+    document.getElementById('cadera-wrap').style.display = val === 'Femenino' ? 'block' : 'none';
+    document.getElementById('ciclo-wrap').style.display  = val === 'Femenino' ? 'block' : 'none';
+  }
+  chk();
+}
+
+function pickRadio(el, key, val) {
+  el.closest('.fld').querySelectorAll('.radio-opt').forEach(r => r.classList.remove('sel'));
+  el.classList.add('sel');
+  fd[key] = val;
+  chk();
+}
+
+// ── UNITS ──
+function setUnits(u) {
+  fd.units = u;
+  document.getElementById('btnKg').classList.toggle('on', u==='metric');
+  document.getElementById('btnLb').classList.toggle('on', u==='imperial');
+  document.getElementById('metric-fields').style.display   = u==='metric'  ? 'block' : 'none';
+  document.getElementById('imperial-fields').style.display = u==='imperial' ? 'block' : 'none';
+  const imp = u === 'imperial';
+  document.getElementById('lbl-neck').textContent  = imp ? 'Cuello (pulg) *'   : 'Cuello (cm) *';
+  document.getElementById('lbl-waist').textContent = imp ? 'Cintura (pulg) *'  : 'Cintura (cm) *';
+  document.getElementById('lbl-hip').textContent   = imp ? 'Cadera (pulg) — solo mujeres *' : 'Cadera (cm) — solo mujeres *';
+  chk();
+}
+
+// ── STEPPERS ──
+function change(key, delta) {
+  if (key==='agua')    { fd.agua    = Math.max(0, Math.round((fd.agua + delta)*10)/10); document.getElementById('agua-v').textContent    = fd.agua.toFixed(1); }
+  if (key==='comidas') { fd.comidas = Math.max(1, Math.min(10, fd.comidas + delta));     document.getElementById('comidas-v').textContent = fd.comidas; }
+}
+
+// ── TOGGLES ──
+function togField(which) {
+  if (which==='enf') {
+    fd.noEnf = !fd.noEnf;
+    document.getElementById('tog-enf').classList.toggle('on', fd.noEnf);
+    document.getElementById('enf-wrap').style.display = fd.noEnf ? 'none' : 'block';
+  } else {
+    fd.noMed = !fd.noMed;
+    document.getElementById('tog-med').classList.toggle('on', fd.noMed);
+    document.getElementById('med-wrap').style.display = fd.noMed ? 'none' : 'block';
+  }
+  chk();
+}
+
+// ── FILE ──
+function onFile(input) {
+  const f = input.files[0];
+  const area = document.getElementById('file-area');
+  const nm   = document.getElementById('file-name');
+  if (f) { area.classList.add('has-file'); nm.textContent = '✓ ' + f.name; }
+  else   { area.classList.remove('has-file'); nm.textContent = ''; }
+}
+
+// ── SUBMIT ──
+async function submit() {
+  const btn = document.getElementById('btnNext');
+  btn.disabled = true;
+  btn.textContent = '⏳ Enviando...';
+
+  const form = new FormData();
+  form.append('nombre',         document.getElementById('nombre').value.trim());
+  form.append('genero',         fd.genero);
+  form.append('edad',           document.getElementById('edad').value);
+  form.append('pais',           document.getElementById('pais').value);
+  form.append('email',          document.getElementById('email').value.trim());
+  form.append('whatsapp',       document.getElementById('whatsapp').value.trim());
+  form.append('sistema_unidades', fd.units === 'metric' ? 'Kilogramos y centímetros' : 'Libras, pies y pulgadas');
+
+  if (fd.units === 'metric') {
+    form.append('altura', document.getElementById('altura').value);
+    form.append('peso',   document.getElementById('peso').value);
+  } else {
+    form.append('altura_pies',     document.getElementById('altura_pies').value);
+    form.append('altura_pulgadas', document.getElementById('altura_pulgadas').value || '0');
+    form.append('peso',            document.getElementById('peso_lb').value);
+  }
+
+  form.append('cuello',         document.getElementById('cuello').value || '0');
+  form.append('cintura',        document.getElementById('cintura').value || '0');
+  form.append('cadera',         fd.genero === 'Femenino' ? (document.getElementById('cadera').value || '0') : '0');
+  form.append('actividad',      fd.actividad);
+  form.append('tipo_actividad', document.getElementById('tipo_actividad').value.trim());
+  form.append('agua',           fd.agua);
+  form.append('comidas',        fd.comidas);
+  form.append('hora_hambre',    document.getElementById('hora_hambre').value);
+  form.append('constipacion',   fd.constipacion);
+  form.append('ansiedad',       fd.ansiedad);
+  form.append('motivo',         document.getElementById('motivo').value.trim());
+  form.append('impedimentos',   document.getElementById('impedimentos').value.trim());
+  form.append('enfermedades',   fd.noEnf ? 'No tengo' : (document.getElementById('enfermedades').value.trim() || 'No tengo'));
+  form.append('medicamentos',   fd.noMed ? 'No tomo'  : (document.getElementById('medicamentos').value.trim()  || 'No tomo'));
+  form.append('ciclo',          fd.ciclo || '');
+  form.append('terminos',       'true');
+
+  const fileInput = document.getElementById('examen');
+  if (fileInput.files[0]) form.append('examen', fileInput.files[0]);
+
+  try {
+    const res = await fetch('/submit', { method: 'POST', body: form });
+    const json = await res.json();
+    if (json.success) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('bot').style.display = 'none';
+      document.querySelector('.hdr').style.display = 'none';
+      document.querySelector('.prog-wrap').style.display = 'none';
+      document.getElementById('nombre-ok').textContent = document.getElementById('nombre').value.split(' ')[0];
+      document.getElementById('success').classList.add('active');
+    } else {
+      throw new Error(json.error);
+    }
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = 'Enviar mi evaluación 🎉';
+    alert('Ocurrió un error al enviar. Por favor intentá de nuevo.');
+    console.error(e);
+  }
+}
+
+// ── INIT ──
+document.getElementById('cadera-wrap').style.display = 'none';
+document.getElementById('ciclo-wrap').style.display  = 'none';
+updateUI();
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: evaluacion-imnufit
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: AIRTABLE_API_KEY
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        value: dikoufbd8
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
