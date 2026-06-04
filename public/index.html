@@ -75,6 +75,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .ta{width:100%;padding:13px 16px;font-size:15px;border:2px solid #DDE4F0;border-radius:13px;outline:none;color:#1A2B4A;background:#F8FAFC;resize:none;height:90px;font-family:inherit;line-height:1.5;transition:border-color .2s}
 .ta:focus{border-color:#2E4982;background:#fff}
 
+/* ── YES/NO BUTTONS ── */
+.yn-wrap{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.yn-btn{padding:14px 10px;border:2px solid #DDE4F0;border-radius:13px;background:#F8FAFC;font-size:15px;font-weight:700;color:#6B80A8;cursor:pointer;transition:all .18s;font-family:inherit;letter-spacing:-.2px}
+.yn-btn.sel{border-color:#2E4982;background:#EEF3FF;color:#2E4982}
+
 /* ── MULTI FILE UPLOAD ── */
 .file-add-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:2px dashed #DDE4F0;border-radius:13px;background:#F8FAFC;cursor:pointer;transition:all .2s;font-size:14px;font-weight:700;color:#2E4982;margin-bottom:10px}
 .file-add-btn:hover{border-color:#2E4982;background:#EEF3FF}
@@ -295,8 +300,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
 
     <div class="fld">
-      <label class="lbl">¿Qué ejercicios realiza? (si no realiza, escriba "Ninguno") *</label>
-      <input class="inp" id="tipo_actividad" type="text" placeholder="Caminata, yoga, pesas, natación..." oninput="chk()">
+      <div class="tog-row" id="tog-ejercicio" onclick="togEjercicio()">
+        <div><div class="tog-txt">Realizo ejercicio regularmente</div><div class="tog-sub">Active si hace algún tipo de actividad física</div></div>
+        <div class="sw"></div>
+      </div>
+      <div id="ejercicio-wrap" style="display:none">
+        <input class="inp" id="tipo_actividad" type="text" placeholder="Ej: Caminata, yoga, pesas, natación..." oninput="chk()">
+      </div>
     </div>
 
     <div class="fld">
@@ -342,25 +352,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
     <div class="fld">
       <label class="lbl">¿Sufre de constipación frecuente? *</label>
-      <div class="opts c2">
-        <button class="opt center" onclick="pick(this,'constipacion','Si');chk()">
-          <span class="opt-icon">✅</span><span class="opt-label">Sí</span>
-        </button>
-        <button class="opt center" onclick="pick(this,'constipacion','No');chk()">
-          <span class="opt-icon">❌</span><span class="opt-label">No</span>
-        </button>
+      <div class="yn-wrap">
+        <button class="yn-btn" onclick="pickYN(this,'constipacion','Si')">Sí</button>
+        <button class="yn-btn" onclick="pickYN(this,'constipacion','No')">No</button>
       </div>
     </div>
 
     <div class="fld">
       <label class="lbl">¿Cambia lo que come cuando está triste o ansioso/a? *</label>
-      <div class="opts c2">
-        <button class="opt center" onclick="pick(this,'ansiedad','Si');chk()">
-          <span class="opt-icon">✅</span><span class="opt-label">Sí</span>
-        </button>
-        <button class="opt center" onclick="pick(this,'ansiedad','No');chk()">
-          <span class="opt-icon">❌</span><span class="opt-label">No</span>
-        </button>
+      <div class="yn-wrap">
+        <button class="yn-btn" onclick="pickYN(this,'ansiedad','Si')">Sí</button>
+        <button class="yn-btn" onclick="pickYN(this,'ansiedad','No')">No</button>
       </div>
     </div>
 
@@ -398,7 +400,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <!-- Medicamentos -->
     <div class="fld">
       <div class="tog-row" id="tog-med" onclick="togField('med')">
-        <div><div class="tog-txt">Tomo medicamentos o suplementos</div><div class="tog-sub">Active si toma algún medicamento o suplemento actualmente</div></div>
+        <div><div class="tog-txt">Tomo medicamentos recetados</div><div class="tog-sub">Active si toma algún medicamento actualmente</div></div>
         <div class="sw"></div>
       </div>
       <div id="med-wrap" style="display:none">
@@ -467,7 +469,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <script>
 // ── STATE ──
-const fd = { genero:'', actividad:'', constipacion:'', ansiedad:'', ciclo:'', agua:1.5, comidas:3, units:'metric', hasEnf:false, hasMed:false };
+const fd = { genero:'', actividad:'', constipacion:'', ansiedad:'', ciclo:'', agua:1.5, comidas:3, units:'metric', hasEnf:false, hasMed:false, hasEjercicio:false };
 let step = 1;
 const TOTAL = 6;
 const LABELS = ['','Comenzar evaluación →','Continuar →','Continuar →','Continuar →','Continuar →','Enviar mi evaluación 🎉'];
@@ -516,7 +518,8 @@ function chk() {
       ok = altOk && pesoOk && !!v('cuello') && !!v('cintura') && cadOk;
       break;
     case 4:
-      ok = fd.actividad && !!v('tipo_actividad') && !!v('hora_hambre');
+      const ejercicioOk = !fd.hasEjercicio || !!v('tipo_actividad');
+      ok = fd.actividad && ejercicioOk && !!v('hora_hambre');
       break;
     case 5:
       ok = fd.constipacion && fd.ansiedad && v('motivo')?.length > 5 && v('impedimentos')?.length > 2;
@@ -578,6 +581,22 @@ function setUnits(u) {
 function change(key, delta) {
   if (key==='agua')    { fd.agua    = Math.max(0, Math.round((fd.agua + delta)*10)/10); document.getElementById('agua-v').textContent    = fd.agua.toFixed(1); }
   if (key==='comidas') { fd.comidas = Math.max(1, Math.min(10, fd.comidas + delta));     document.getElementById('comidas-v').textContent = fd.comidas; }
+}
+
+// ── EJERCICIO TOGGLE ──
+function togEjercicio() {
+  fd.hasEjercicio = !fd.hasEjercicio;
+  document.getElementById('tog-ejercicio').classList.toggle('on', fd.hasEjercicio);
+  document.getElementById('ejercicio-wrap').style.display = fd.hasEjercicio ? 'block' : 'none';
+  chk();
+}
+
+// ── YES/NO PICKER ──
+function pickYN(btn, key, val) {
+  btn.closest('.yn-wrap').querySelectorAll('.yn-btn').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  fd[key] = val;
+  chk();
 }
 
 // ── TOGGLES ──
@@ -661,7 +680,7 @@ async function submit() {
   form.append('cintura',        document.getElementById('cintura').value || '0');
   form.append('cadera',         fd.genero === 'Femenino' ? (document.getElementById('cadera').value || '0') : '0');
   form.append('actividad',      fd.actividad);
-  form.append('tipo_actividad', document.getElementById('tipo_actividad').value.trim());
+  form.append('tipo_actividad', fd.hasEjercicio ? (document.getElementById('tipo_actividad').value.trim() || 'No especificado') : 'Ninguno');
   form.append('agua',           fd.agua);
   form.append('comidas',        fd.comidas);
   form.append('hora_hambre',    document.getElementById('hora_hambre').value);
