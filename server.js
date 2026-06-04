@@ -49,21 +49,23 @@ function toMetric(data) {
   return { altura_cm, peso_kg, cuello_cm, cintura_cm, cadera_cm, pre_altura, pre_peso, pre_cuello, pre_cintura, pre_cadera };
 }
 
-app.post('/submit', upload.single('examen'), async (req, res) => {
+app.post('/submit', upload.array('examenes', 10), async (req, res) => {
   try {
     const data = req.body;
     const { altura_cm, peso_kg, cuello_cm, cintura_cm, cadera_cm, pre_altura, pre_peso, pre_cuello, pre_cintura, pre_cadera } = toMetric(data);
 
-    // Subir examen a Cloudinary si se adjuntó
+    // Subir todos los exámenes a Cloudinary
     let adjunto = [];
-    if (req.file) {
-      const resultado = await new Promise((resolve, reject) => {
-        cloudinary.uploader.upload_stream(
-          { folder: 'imnufit-evaluaciones', resource_type: 'auto' },
-          (err, result) => err ? reject(err) : resolve(result)
-        ).end(req.file.buffer);
-      });
-      adjunto = [{ url: resultado.secure_url }];
+    if (req.files && req.files.length > 0) {
+      const uploads = req.files.map(file =>
+        new Promise((resolve, reject) => {
+          cloudinary.uploader.upload_stream(
+            { folder: 'imnufit-evaluaciones', resource_type: 'auto' },
+            (err, result) => err ? reject(err) : resolve({ url: result.secure_url })
+          ).end(file.buffer);
+        })
+      );
+      adjunto = await Promise.all(uploads);
     }
 
     const hoy = new Date().toISOString().split('T')[0];
