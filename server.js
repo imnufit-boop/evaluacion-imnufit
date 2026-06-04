@@ -24,8 +24,9 @@ function toMetric(data) {
   let altura_cm, peso_kg, cuello_cm, cintura_cm, cadera_cm;
 
   if (imperial) {
-    const pies = parseFloat(data.altura_pies) || 0;
-    const pulgadas = parseFloat(data.altura_pulgadas) || 0;
+    const raw = parseFloat(data.altura_imp) || 0;
+    const pies = Math.floor(raw);
+    const pulgadas = Math.round((raw - pies) * 100); // 5.11 → 11 pulgadas
     altura_cm = Math.round((pies * 30.48) + (pulgadas * 2.54));
     peso_kg   = Math.round(parseFloat(data.peso) * 0.453592 * 10) / 10;
     cuello_cm  = Math.round(parseFloat(data.cuello)  * 2.54 * 10) / 10;
@@ -40,7 +41,7 @@ function toMetric(data) {
   }
 
   // Pre-values: raw input del usuario
-  const pre_altura  = imperial ? (parseFloat(data.altura_pies) * 12 + parseFloat(data.altura_pulgadas || 0)) : parseFloat(data.altura);
+  const pre_altura  = imperial ? parseFloat(data.altura_imp) : parseFloat(data.altura);
   const pre_peso    = parseFloat(data.peso);
   const pre_cuello  = parseFloat(data.cuello);
   const pre_cintura = parseFloat(data.cintura);
