@@ -250,21 +250,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="info"><span>💡</span>Ejemplo: 5 pies 11 pulgadas → escriba <strong>5.11</strong></div>
     </div>
 
-    <div class="info"><span>💡</span>Si no tiene alguna medida disponible, ingrese 0 — podrá actualizarla después.</div>
+    <div class="info" style="justify-content:space-between;align-items:center">
+      <span style="display:flex;gap:8px;align-items:center"><span>💡</span>Si no tiene las medidas de cuello, cintura o cadera, déjelas en 0.</span>
+      <a href="https://drive.google.com/file/d/1av1JYpjlgWVE9qwWG3S9Qi85pWHJ4DFT/view?usp=drive_link" target="_blank" style="font-size:11px;font-weight:700;color:#2E4982;white-space:nowrap;text-decoration:none;border-bottom:1px solid rgba(46,73,130,.3);padding-bottom:1px;flex-shrink:0;margin-left:10px">¿Cómo medirme?</a>
+    </div>
 
     <div class="two-col">
       <div class="fld">
         <label class="lbl" id="lbl-neck">Cuello (cm) *</label>
-        <input class="inp" id="cuello" type="number" placeholder="34" step="0.1" oninput="chk()">
+        <input class="inp" id="cuello" type="number" placeholder="0" value="0" step="0.1" oninput="chk()">
       </div>
       <div class="fld">
         <label class="lbl" id="lbl-waist">Cintura (cm) *</label>
-        <input class="inp" id="cintura" type="number" placeholder="88" step="0.1" oninput="chk()">
+        <input class="inp" id="cintura" type="number" placeholder="0" value="0" step="0.1" oninput="chk()">
       </div>
     </div>
     <div class="fld" id="cadera-wrap">
       <label class="lbl" id="lbl-hip">Cadera (cm) — solo mujeres *</label>
-      <input class="inp" id="cadera" type="number" placeholder="100" step="0.1" oninput="chk()">
+      <input class="inp" id="cadera" type="number" placeholder="0" value="0" step="0.1" oninput="chk()">
     </div>
   </div>
 </div>
