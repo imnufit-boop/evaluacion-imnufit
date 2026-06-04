@@ -212,7 +212,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <span class="sec-emoji">📏</span>
     <div class="sec-tag">Sección 2 de 5</div>
     <div class="sec-title">Medidas corporales</div>
-    <div class="sec-sub">Seleccione su sistema de unidades y complete las medidas. Solo necesita una cinta métrica.</div>
+    <div class="sec-sub">Seleccione su sistema de unidades y complete las medidas.</div>
 
     <div class="unit-tog">
       <button class="on" id="btnKg" onclick="setUnits('metric')">Kg &amp; cm</button>
@@ -387,10 +387,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <!-- Enfermedades -->
     <div class="fld">
       <div class="tog-row" id="tog-enf" onclick="togField('enf')">
-        <div><div class="tog-txt">No tengo enfermedades</div><div class="tog-sub">Active si no tiene ninguna diagnosticada</div></div>
+        <div><div class="tog-txt">Tengo enfermedades o condiciones diagnosticadas</div><div class="tog-sub">Active si tiene alguna condición médica diagnosticada</div></div>
         <div class="sw"></div>
       </div>
-      <div id="enf-wrap">
+      <div id="enf-wrap" style="display:none">
         <textarea class="ta" id="enfermedades" placeholder="Ej: Hipotiroidismo, Diabetes tipo 2, PCOS, Resistencia a la insulina..."></textarea>
       </div>
     </div>
@@ -398,10 +398,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <!-- Medicamentos -->
     <div class="fld">
       <div class="tog-row" id="tog-med" onclick="togField('med')">
-        <div><div class="tog-txt">No tomo medicamentos</div><div class="tog-sub">Active si no toma ningún medicamento o suplemento</div></div>
+        <div><div class="tog-txt">Tomo medicamentos o suplementos</div><div class="tog-sub">Active si toma algún medicamento o suplemento actualmente</div></div>
         <div class="sw"></div>
       </div>
-      <div id="med-wrap">
+      <div id="med-wrap" style="display:none">
         <textarea class="ta" id="medicamentos" placeholder="Ej: Levotiroxina 50mcg, Metformina, Estrógeno, Vitamina D..."></textarea>
       </div>
     </div>
@@ -467,7 +467,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <script>
 // ── STATE ──
-const fd = { genero:'', actividad:'', constipacion:'', ansiedad:'', ciclo:'', agua:1.5, comidas:3, units:'metric', noEnf:false, noMed:false };
+const fd = { genero:'', actividad:'', constipacion:'', ansiedad:'', ciclo:'', agua:1.5, comidas:3, units:'metric', hasEnf:false, hasMed:false };
 let step = 1;
 const TOTAL = 6;
 const LABELS = ['','Comenzar evaluación →','Continuar →','Continuar →','Continuar →','Continuar →','Enviar mi evaluación 🎉'];
@@ -479,7 +479,7 @@ let selectedFiles = [];
 function updateUI() {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const sc = document.getElementById('s'+step);
-  if (sc) { sc.classList.add('active'); window.scrollTo(0,0); }
+  if (sc) { sc.classList.add('active'); window.scrollTo({top:0,behavior:'instant'}); document.body.scrollTop=0; document.documentElement.scrollTop=0; }
   document.getElementById('prog').style.width = ((step-1)/(TOTAL)*100)+'%';
   document.getElementById('stepLbl').textContent = step > 1 ? `${step-1} de ${TOTAL-1}` : '';
   document.getElementById('btnBack').style.opacity = step===1?'0':'1';
@@ -522,8 +522,8 @@ function chk() {
       ok = fd.constipacion && fd.ansiedad && v('motivo')?.length > 5 && v('impedimentos')?.length > 2;
       break;
     case 6:
-      const enfOk = fd.noEnf || !!v('enfermedades');
-      const medOk = fd.noMed || !!v('medicamentos');
+      const enfOk = !fd.hasEnf || !!v('enfermedades');
+      const medOk = !fd.hasMed || !!v('medicamentos');
       // ciclo: requerido para mujeres; hombres ya tienen 'No tengo' en fd.ciclo
       const cicloOk = !!fd.ciclo;
       ok = enfOk && medOk && cicloOk && document.getElementById('terminos').checked;
@@ -583,13 +583,13 @@ function change(key, delta) {
 // ── TOGGLES ──
 function togField(which) {
   if (which==='enf') {
-    fd.noEnf = !fd.noEnf;
-    document.getElementById('tog-enf').classList.toggle('on', fd.noEnf);
-    document.getElementById('enf-wrap').style.display = fd.noEnf ? 'none' : 'block';
+    fd.hasEnf = !fd.hasEnf;
+    document.getElementById('tog-enf').classList.toggle('on', fd.hasEnf);
+    document.getElementById('enf-wrap').style.display = fd.hasEnf ? 'block' : 'none';
   } else {
-    fd.noMed = !fd.noMed;
-    document.getElementById('tog-med').classList.toggle('on', fd.noMed);
-    document.getElementById('med-wrap').style.display = fd.noMed ? 'none' : 'block';
+    fd.hasMed = !fd.hasMed;
+    document.getElementById('tog-med').classList.toggle('on', fd.hasMed);
+    document.getElementById('med-wrap').style.display = fd.hasMed ? 'block' : 'none';
   }
   chk();
 }
@@ -670,8 +670,8 @@ async function submit() {
   form.append('ansiedad',       fd.ansiedad);
   form.append('motivo',         document.getElementById('motivo').value.trim());
   form.append('impedimentos',   document.getElementById('impedimentos').value.trim());
-  form.append('enfermedades',   fd.noEnf ? 'No tengo' : (document.getElementById('enfermedades').value.trim() || 'No tengo'));
-  form.append('medicamentos',   fd.noMed ? 'No tomo'  : (document.getElementById('medicamentos').value.trim()  || 'No tomo'));
+  form.append('enfermedades',   fd.hasEnf ? (document.getElementById('enfermedades').value.trim() || 'No especificado') : 'No tengo');
+  form.append('medicamentos',   fd.hasMed ? (document.getElementById('medicamentos').value.trim()  || 'No especificado') : 'No tomo');
   form.append('ciclo',          fd.ciclo);
   form.append('terminos',       'true');
 

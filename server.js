@@ -104,8 +104,8 @@ app.post('/submit', upload.array('examenes', 10), async (req, res) => {
       fldFpzmx9r97JgFKE: data.terminos === 'true',           // Aceptar términos
     };
 
-    // Ciclo menstrual solo para mujeres
-    if (data.genero === 'Femenino' && data.ciclo) {
+    // Ciclo menstrual — siempre se envía ('No tengo' para hombres)
+    if (data.ciclo) {
       fields.fldWJUkH77DAFIl7S = data.ciclo;
     }
 
